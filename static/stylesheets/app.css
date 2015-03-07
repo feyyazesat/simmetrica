@@ -1,0 +1,43 @@
+body {
+  background-color: #F3E0BD;
+  margin-top: 20px;
+  margin-bottom: 50px;
+  font: 16px/26px 'Lato',serif;
+  color: #333;
+}
+header, footer, #graphs {
+  width: 1200px;
+  margin: 20px auto;
+}
+h1 {
+  font-size: 2em;
+}
+h3 {
+  font-size: 1.5em;
+}
+#top-title, .graph-title {
+  font-weight: normal;
+  padding-left: 30px;
+}
+#loading, #errormessage {
+  font-weight: normal;
+  text-align: center;
+}
+.graph-section {
+  float: left;
+  margin: 20px 0px;
+}
+.graph-container .y-axis {
+  float: left;
+  height: 300px;
+  width: 50px;
+}
+.graph-container .graph {
+  float: left;
+  height: 300px;
+}
+.legend {
+  background: transparent;
+  color: #333;
+  padding-left: 30px;
+}
