@@ -64,18 +64,16 @@ func Check(err error) {
 }
 
 func Push(event string, increment uint64, now uint64) (interface{}, error) {
-	/*
-		redisConnection := hnVars.redisConnection
-		var key string
-		redisConnection.Send("MULTI")
-		for timeRes := range getTimeStampsForPush(now) {
-			key = getEventKey(event, timeRes.resolution)
-			err := redisConnection.Send("HINCRBY", key, timeRes.timestamp, increment)
-			Check(err)
-		}
-		return redisConnection.Do("EXEC")
-	*/
-	return "", nil
+
+	redisConnection := *hnVars.redisConnection
+	var key string
+	redisConnection.Send("MULTI")
+	for timeRes := range getTimeStampsForPush(now) {
+		key = getEventKey(event, timeRes.resolution)
+		err := redisConnection.Send("HINCRBY", key, timeRes.timestamp, increment)
+		Check(err)
+	}
+	return redisConnection.Do("EXEC")
 }
 
 // RoundTime rounds given time according to given resolution which defined in resolutions hash map
@@ -111,16 +109,15 @@ func getTimeStampsForPush(now uint64) chan TimeResolution {
 func GetCurrentTimeStamp() uint64 {
 	return uint64(time.Now().Unix())
 }
-
-func init() {
-	fmt.Println("Hello Kitty")
-	fmt.Println(RedisArgs.RedisHost)
-	os.Exit(1)
+func Initialize() *redisLib.Conn {
 	redisConnection, err := redisLib.Dial("tcp", fmt.Sprintf("%s:%s", RedisArgs.RedisHost, RedisArgs.RedisPort))
 	hnVars.redisConnection = &redisConnection
 	Check(err)
-	//	fmt.Println(*hnVars.redisConnection)
-	defer func(redisConnection redisLib.Conn) {
+	return hnVars.redisConnection
+}
+
+func Uninitialize() func(redisConnection redisLib.Conn) {
+	return func(redisConnection redisLib.Conn) {
 		redisConnection.Close()
-	}(*hnVars.redisConnection)
+	}
 }

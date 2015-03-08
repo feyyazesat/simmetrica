@@ -164,7 +164,6 @@ func CreateRoutes(router *httprouter.Router) *httprouter.Router {
 }
 
 func init() {
-	fmt.Println("Main 1")
 	flag.BoolVar(
 		&args.debug,
 		"debug",
@@ -202,7 +201,6 @@ func init() {
 		"Authorization password of redis")
 
 	flag.Parse()
-	fmt.Println("Main 2")
 }
 
 func main() {
@@ -215,6 +213,8 @@ func main() {
 		err = yaml.UnmarshalYAML(configContent)
 		Check(err)
 	}
+	conn := simmetrica.Initialize()
+	defer simmetrica.Uninitialize()(*conn)
 
 	router = CreateRoutes(httprouter.New())
 	fmt.Println("Server Started at 127.0.0.1:8080 Time : ", simmetrica.GetCurrentTimeStamp())
