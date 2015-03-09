@@ -17,7 +17,20 @@ import (
 
 type (
 	Yaml struct {
-		Graphs []map[string]interface{}
+		Graphs []struct {
+			Title         string
+			Timespan      string
+			Colorscheme   string
+			Type          string
+			Interpolation string
+			Resolution    string
+			Size          string
+			Offset        string
+			Events        []struct {
+				Name  string
+				Title string
+			}
+		}
 	}
 
 	justFilesFilesystem struct {
@@ -151,14 +164,12 @@ func Graph(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	now := simmetrica.GetCurrentTimeStamp()
 	var timespanAsSec uint64
 	for _, sections := range yaml.Graphs {
-		timespan, ok := sections["timespan"].(string)
-		if !ok {
-			timespan = "1 day"
+		if sections.Timespan == "" {
+			sections.Timespan = "1 day"
 		}
-		timespanAsSec = simmetrica.GetSecFromRelativeTime(timespan)
-		fmt.Fprintf(w, "ok")
-		for _, event := range sections["events"] {
-
+		timespanAsSec = simmetrica.GetSecFromRelativeTime(sections.Timespan)
+		for _, event := range sections.Events {
+			_ = event
 		}
 	}
 	fmt.Fprint(w, timespanAsSec, now)
