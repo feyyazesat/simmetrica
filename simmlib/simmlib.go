@@ -3,6 +3,8 @@ package simmlib
 import (
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"time"
 
 	redisLib "github.com/garyburd/redigo/redis"
@@ -109,15 +111,31 @@ func getTimeStampsForPush(now uint64) chan TimeResolution {
 func GetCurrentTimeStamp() uint64 {
 	return uint64(time.Now().Unix())
 }
-func Initialize() *redisLib.Conn {
+
+func GetSecFromRelativeTime(timespan string) uint64 {
+	re := regexp.MustCompile(`^(\d+)\s(\w+)$`)
+	match := re.FindStringSubmatch(timespan)
+	if len(match) != 3 {
+		panic("Configuration Err: timespan is not a valid value '" + timespan + "'")
+	}
+	re = regexp.MustCompile(`^` + match[2] + `*`)
+	multiplier, _ := strconv.ParseUint(match[1], 10, 0)
+	for key, resolution := range resolutions {
+		if re.MatchString(key) {
+			return resolution * multiplier
+		}
+
+	}
+	return resolutions["day"] * multiplier
+}
+
+func Initialize() {
 	redisConnection, err := redisLib.Dial("tcp", fmt.Sprintf("%s:%s", RedisArgs.RedisHost, RedisArgs.RedisPort))
 	hnVars.redisConnection = &redisConnection
 	Check(err)
-	return hnVars.redisConnection
 }
 
-func Uninitialize() func(redisConnection redisLib.Conn) {
-	return func(redisConnection redisLib.Conn) {
-		redisConnection.Close()
-	}
+func Uninitialize() {
+	redisConnection := *hnVars.redisConnection
+	redisConnection.Close()
 }

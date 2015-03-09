@@ -148,7 +148,20 @@ func Query(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 }
 
 func Graph(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, yaml)
+	now := simmetrica.GetCurrentTimeStamp()
+	var timespanAsSec uint64
+	for _, sections := range yaml.Graphs {
+		timespan, ok := sections["timespan"].(string)
+		if !ok {
+			timespan = "1 day"
+		}
+		timespanAsSec = simmetrica.GetSecFromRelativeTime(timespan)
+		fmt.Fprintf(w, "ok")
+		for _, event := range sections["events"] {
+
+		}
+	}
+	fmt.Fprint(w, timespanAsSec, now)
 }
 
 func CreateRoutes(router *httprouter.Router) *httprouter.Router {
@@ -213,8 +226,8 @@ func main() {
 		err = yaml.UnmarshalYAML(configContent)
 		Check(err)
 	}
-	conn := simmetrica.Initialize()
-	defer simmetrica.Uninitialize()(*conn)
+	simmetrica.Initialize()
+	defer simmetrica.Uninitialize()
 
 	router = CreateRoutes(httprouter.New())
 	fmt.Println("Server Started at 127.0.0.1:8080 Time : ", simmetrica.GetCurrentTimeStamp())
