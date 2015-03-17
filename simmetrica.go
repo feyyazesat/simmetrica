@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -10,8 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	simmetrica "github.com/feyyazesat/simmetrica/simmlib"
-	httprouter "github.com/julienschmidt/httprouter"
+	"github.com/feyyazesat/simmetrica/simmlib"
+	"github.com/julienschmidt/httprouter"
 	yamlLib "gopkg.in/yaml.v2"
 )
 
@@ -31,6 +32,23 @@ type (
 				Title string
 			}
 		}
+	}
+	graphEvents struct {
+		Name  string                   `json:"name"`
+		Title string                   `json:"title"`
+		Data  []simmlib.TstampValTuple `json:"data"`
+	}
+
+	graphResult struct {
+		Title         string        `json:"title"`
+		Colorscheme   string        `json:"colorscheme"`
+		Type          string        `json:"type"`
+		Interpolation string        `json:"interpolation"`
+		Resolution    string        `json:"resolution"`
+		Size          string        `json:"size"`
+		Offset        string        `json:"offset"`
+		Identifier    string        `json:"identifier"`
+		Events        []graphEvents `json:"events"`
 	}
 
 	justFilesFilesystem struct {
@@ -122,21 +140,6 @@ func (f neuteredReaddirFile) Readdir(count int) ([]os.FileInfo, error) {
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	tmpl, err := ReadFile(TEMPLATE_FOLDER + "/index.html")
 	Check(err)
-	/*
-		tmpl, err := template.New("Index").ParseFiles(TEMPLATE_FOLDER + "/index.html")
-		Check(err)
-		/*
-			data := struct {
-				Title string
-				Body  string
-			}{
-				"About page",
-				"Body info",
-			}
-
-		err = tmpl.Execute(w, nil)
-		Check(err)
-	*/
 	fmt.Fprint(w, string(*tmpl))
 }
 
@@ -145,13 +148,10 @@ func Push(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	now, _ := strconv.ParseUint(r.FormValue("now"), 10, 0)
 
 	if !(increment > 0) {
-		increment = simmetrica.DEFAULT_INCREMENT
+		increment = simmlib.DEFAULT_INCREMENT
 	}
-	pushreply, err := simmetrica.Push(params.ByName("event"), increment, now)
+	_, err := simmlib.Push(params.ByName("event"), increment, now)
 	Check(err)
-
-	//debugging.
-	_ = pushreply
 
 	fmt.Fprint(w, "ok")
 }
@@ -161,18 +161,41 @@ func Query(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 }
 
 func Graph(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	now := simmetrica.GetCurrentTimeStamp()
-	var timespanAsSec uint64
+	now := simmlib.GetCurrentTimeStamp()
+	var timespanAsSec, start, end uint64
+	var series []simmlib.TstampValTuple
+	var events []graphEvents
+	var result graphResult
+	var results []graphResult
+
 	for _, sections := range yaml.Graphs {
 		if sections.Timespan == "" {
 			sections.Timespan = "1 day"
 		}
-		timespanAsSec = simmetrica.GetSecFromRelativeTime(sections.Timespan)
+		timespanAsSec = simmlib.GetSecFromRelativeTime(sections.Timespan)
+		events = events[:0]
 		for _, event := range sections.Events {
-			_ = event
+			start = now - timespanAsSec
+			end = now + simmlib.GetResolution(sections.Resolution)
+			series = simmlib.Query(event.Name, start, end, simmlib.GetResolutionKey(sections.Resolution))
+			events = append(events, graphEvents{Name: event.Name, Title: event.Title, Data: series})
 		}
+		result = graphResult{
+			Title:         sections.Title,
+			Colorscheme:   sections.Colorscheme,
+			Type:          sections.Type,
+			Interpolation: sections.Interpolation,
+			Resolution:    sections.Resolution,
+			Size:          sections.Size,
+			Offset:        sections.Offset,
+			Events:        events,
+		}
+		results = append(results, result)
 	}
-	fmt.Fprint(w, timespanAsSec, now)
+	response, err := json.MarshalIndent(results, "", "  ")
+	Check(err)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(response))
 }
 
 func CreateRoutes(router *httprouter.Router) *httprouter.Router {
@@ -201,27 +224,27 @@ func init() {
 		fmt.Sprintf("Run with the specified config file (default: %s)", DEFAULT_CONFIG_FILE))
 
 	flag.StringVar(
-		&simmetrica.RedisArgs.RedisHost,
+		&simmlib.RedisArgs.RedisHost,
 		"redis_host",
-		simmetrica.DEFAULT_REDIS_HOST,
+		simmlib.DEFAULT_REDIS_HOST,
 		"Connect to redis on the specified host")
 
 	flag.StringVar(
-		&simmetrica.RedisArgs.RedisPort,
+		&simmlib.RedisArgs.RedisPort,
 		"redis_port",
-		simmetrica.DEFAULT_REDIS_PORT,
+		simmlib.DEFAULT_REDIS_PORT,
 		"Connect to redis on the specified port")
 
 	flag.StringVar(
-		&simmetrica.RedisArgs.RedisDb,
+		&simmlib.RedisArgs.RedisDb,
 		"redis_db",
-		simmetrica.DEFAULT_REDIS_DB,
+		simmlib.DEFAULT_REDIS_DB,
 		"Connect to the specified db in redis")
 
 	flag.StringVar(
-		&simmetrica.RedisArgs.RedisPassword,
+		&simmlib.RedisArgs.RedisPassword,
 		"redis_password",
-		simmetrica.DEFAULT_REDIS_PASSWORD,
+		simmlib.DEFAULT_REDIS_PASSWORD,
 		"Authorization password of redis")
 
 	flag.Parse()
@@ -237,11 +260,11 @@ func main() {
 		err = yaml.UnmarshalYAML(configContent)
 		Check(err)
 	}
-	simmetrica.Initialize()
-	defer simmetrica.Uninitialize()
+	simmlib.Initialize()
+	defer simmlib.Uninitialize()
 
 	router = CreateRoutes(httprouter.New())
-	fmt.Println("Server Started at 127.0.0.1:8080 Time : ", simmetrica.GetCurrentTimeStamp())
+	fmt.Println("Server Started at 127.0.0.1:8080 Time : ", simmlib.GetCurrentTimeStamp())
 	log.Fatal(http.ListenAndServe(":8080", router))
 
 }
