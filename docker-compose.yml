@@ -3,10 +3,8 @@ services:
   web:
     build: .
     ports:
-     - "5000:5000"
+     - "8080:5000"
     links:
       - redis
   redis:
     image: "redis:alpine"
-    ports:
-     - "5000:5000"
