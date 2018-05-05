@@ -62,13 +62,9 @@ type (
 )
 
 const (
-	//	STATIC_FOLDER = "/opt/simmetrica/static"
-	//	TEMPLATE_FOLDER = "/opt/simmetrica/templates"
-	//	DEFAULT_CONFIG_FILE = "/opt/simmetrica/config/config.yml"
-
-	STATIC_FOLDER       = "/var/golang/src/github.com/feyyazesat/simmetrica/static"
-	TEMPLATE_FOLDER     = "/var/golang/src/github.com/feyyazesat/simmetrica/templates"
-	DEFAULT_CONFIG_FILE = "/var/golang/src/github.com/feyyazesat/simmetrica/config/config.yml"
+	ASSETS_FOLDER       = "assets"
+	TEMPLATE_FOLDER     = "templates"
+	DEFAULT_CONFIG_FILE = "config/config.yml"
 )
 
 var (
@@ -204,8 +200,8 @@ func CreateRoutes(router *httprouter.Router) *httprouter.Router {
 	router.GET("/query/:event/:start/:end", LogWrapper(Query, "Query"))
 	router.GET("/graph", LogWrapper(Graph, "Graph"))
 
-	fs := justFilesFilesystem{http.Dir(STATIC_FOLDER)}
-	router.Handler("GET", "/static/*filepath", http.StripPrefix("/static", http.FileServer(fs)))
+	fs := justFilesFilesystem{http.Dir(ASSETS_FOLDER)}
+	router.Handler("GET", "/assets/*filepath", http.StripPrefix("/assets", http.FileServer(fs)))
 
 	return router
 }
