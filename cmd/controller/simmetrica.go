@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/feyyazesat/simmetrica/simmlib"
+	"github.com/feyyazesat/simmetrica/pkg/simmlib"
 	"github.com/julienschmidt/httprouter"
 	yamlLib "gopkg.in/yaml.v2"
 )
