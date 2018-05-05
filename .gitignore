@@ -1,0 +1,5 @@
+# exclude everything
+vendor/*
+
+# exception to the rule
+!vendor/.gitkeep 
