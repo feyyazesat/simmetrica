@@ -33,6 +33,7 @@ type (
 			}
 		}
 	}
+
 	graphEvents struct {
 		Name  string                   `json:"name"`
 		Title string                   `json:"title"`
@@ -54,6 +55,7 @@ type (
 	justFilesFilesystem struct {
 		fs http.FileSystem
 	}
+
 	neuteredReaddirFile struct {
 		http.File
 	}

@@ -57,7 +57,7 @@ var (
 const (
 	DEFAULT_INCREMENT      = uint64(1)
 	DEFAULT_RESOLUTION     = "5min"
-	DEFAULT_REDIS_HOST     = "localhost"
+	DEFAULT_REDIS_HOST     = "redis"
 	DEFAULT_REDIS_PORT     = "6379"
 	DEFAULT_REDIS_DB       = ""
 	DEFAULT_REDIS_PASSWORD = ""
