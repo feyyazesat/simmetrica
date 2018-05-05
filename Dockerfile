@@ -12,7 +12,5 @@ CMD /bin/bash
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 RUN dep ensure
-RUN go get -d -v
 RUN go install -v
-RUN go build
-CMD ["app"]
+CMD ["ls"]

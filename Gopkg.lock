@@ -4,8 +4,8 @@
 [[projects]]
   branch = "master"
   name = "github.com/feyyazesat/simmetrica"
-  packages = ["simmlib"]
-  revision = "fe5aaf9dd9544c213c37e187665afaa7f7f43beb"
+  packages = ["pkg/simmlib"]
+  revision = "647d4865e446c79421a0f7f021e0ba5b0714416f"
 
 [[projects]]
   name = "github.com/garyburd/redigo"
@@ -31,6 +31,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b3d4eef64f3cd293e172332281da4436fe39db56074637e8eae1714b21f3d062"
+  inputs-digest = "9579407cde5c2ec90e30cf47c6c0fb2fe1cca97b7e41f62812ac74178b057a2e"
   solver-name = "gps-cdcl"
   solver-version = 1
