@@ -49,8 +49,10 @@ var (
 		RedisDb       string
 		RedisPassword string
 	}{
-		RedisHost: DEFAULT_REDIS_HOST,
-		RedisPort: DEFAULT_REDIS_PORT,
+		RedisHost      : DEFAULT_REDIS_HOST,
+		RedisPort      : DEFAULT_REDIS_PORT,
+		RedisDB        : DEFAULT_REDIS_DB,
+		RedisPassword  : DEFAULT_REDIS_PASSWORD
 	}
 )
 
