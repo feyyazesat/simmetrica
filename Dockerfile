@@ -14,4 +14,4 @@ RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 RUN dep ensure
 RUN go install -v cmd/controller/simmetrica.go
 
-ENTRYPOINT $GOBIN/simmetrica
+ENTRYPOINT $GOBIN/simmetrica --redis_host=redis
